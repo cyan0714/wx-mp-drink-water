@@ -1,7 +1,7 @@
 # 微信喝水提醒服务
 
 这是一个基于微信小程序的智能喝水提醒服务，帮助用户养成健康的饮水习惯。通过订阅通知功能，用户可以接收定时的喝水提醒，追踪每日饮水量，实现科学补水。
-后端服务在[这里](https://github.com/cyan0714/wx-mp-drink-water-api)
+后端代码在[这里](https://github.com/cyan0714/wx-mp-drink-water-api)
 
 
 ## 功能特点
