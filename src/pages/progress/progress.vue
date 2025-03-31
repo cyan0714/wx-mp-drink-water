@@ -692,37 +692,6 @@ export default {
   border-radius: 20rpx;
 }
 
-/* 四个角的装饰 */
-.datav-border-box .border-box-content::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border-radius: 20rpx;
-  background: 
-    linear-gradient(to right, rgba(0, 255, 255, 0.8) 2px, transparent 2px) top left no-repeat,
-    linear-gradient(to bottom, rgba(0, 255, 255, 0.8) 2px, transparent 2px) top left no-repeat,
-    linear-gradient(to left, rgba(0, 255, 255, 0.8) 2px, transparent 2px) top right no-repeat,
-    linear-gradient(to bottom, rgba(0, 255, 255, 0.8) 2px, transparent 2px) top right no-repeat,
-    linear-gradient(to right, rgba(0, 255, 255, 0.8) 2px, transparent 2px) bottom left no-repeat,
-    linear-gradient(to top, rgba(0, 255, 255, 0.8) 2px, transparent 2px) bottom left no-repeat,
-    linear-gradient(to left, rgba(0, 255, 255, 0.8) 2px, transparent 2px) bottom right no-repeat,
-    linear-gradient(to top, rgba(0, 255, 255, 0.8) 2px, transparent 2px) bottom right no-repeat;
-  background-size: 30rpx 30rpx;
-  z-index: 1;
-}
-
-@keyframes borderLightMove {
-  0% {
-    background-position: 0% 0%;
-  }
-  100% {
-    background-position: 100% 0%;
-  }
-}
-
 /* 为活跃项目添加更明显的效果 */
 .datav-border-box.active .border-box-content::after {
   background: linear-gradient(
