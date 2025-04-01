@@ -40,6 +40,16 @@ const api = {
   // 获取用户信息
   getUserInfo: (openid) => {
     return request(`/api/wechat/user/${openid}`, 'GET');
+  },
+  
+  // 获取用户每日喝水任务列表
+  getWaterTaskList: (openid) => {
+    return request(`/api/water-task/list/${openid}`, 'GET');
+  },
+  
+  // 完成喝水任务
+  completeWaterTask: (taskId, openid) => {
+    return request(`/api/water-task/complete`, 'POST', { openid, taskId });
   }
 };
 

@@ -97,71 +97,53 @@
 </template>
 
 <script>
+import api from '../../utils/api.js';
+
 export default {
   data() {
     return {
       currentTime: '00:00',
       timelineProgress: 0,
       particles: [],
-      waterSchedule: [
-        {
-          time: '7:00',
-          amount: '300ml',
-          message: '🌱晨间系统启动，需要能量液补给',
-          effect: '激活代谢，补偿夜间水分流失',
-          completed: false,
-        },
-        {
-          time: '9:30',
-          amount: '250ml',
-          message: '⚠️检测到专注模式开启，建议脑部冷却',
-          effect: '应对工作压力峰值',
-          completed: false,
-        },
-        {
-          time: '11:00',
-          amount: '250ml',
-          message: '⚡战舰引擎过热，立即补水降温！',
-          effect: '预防午餐前饥饿混淆',
-          completed: false,
-        },
-        {
-          time: '13:30',
-          amount: '300ml',
-          message: '🐦午休后重力适应，需液压平衡',
-          effect: '促进消化，避免午后困倦',
-          completed: false,
-        },
-        {
-          time: '15:30',
-          amount: '300ml',
-          message: '🔋能量舱储备剩余40%，立即充能',
-          effect: '对抗下午代谢低谷',
-          completed: false,
-        },
-        {
-          time: '17:00',
-          amount: '200ml',
-          message: '🌃黄昏航行补给，避免燃料枯竭',
-          effect: '缓解疲劳，准备晚餐',
-          completed: false,
-        },
-        {
-          time: '19:30',
-          amount: '200ml',
-          message: '🍃晚餐后生态维护，启动清洁协议',
-          effect: '稀释血液浓度',
-          completed: false,
-        },
-        {
-          time: '21:00',
-          amount: '200ml',
-          message: '🏥休眠前2小时，完成终极补给',
-          effect: '预防夜间脱水',
-          completed: false,
-        },
-      ],
+      waterSchedule: [],
       totalWaterIntake: 0,
+      userInfo: null,
+      isLoading: false,
+      // 任务消息和效果映射，根据时间段显示不同的消息
+      messageMap: {
+        '07:00': {
+          message: '🌱晨间系统启动，需要能量液补给',
+          effect: '激活代谢，补偿夜间水分流失'
+        },
+        '09:30': {
+          message: '⚠️检测到专注模式开启，建议脑部冷却',
+          effect: '应对工作压力峰值'
+        },
+        '11:00': {
+          message: '⚡战舰引擎过热，立即补水降温！',
+          effect: '预防午餐前饥饿混淆'
+        },
+        '13:30': {
+          message: '🐦午休后重力适应，需液压平衡',
+          effect: '促进消化，避免午后困倦'
+        },
+        '15:30': {
+          message: '🔋能量舱储备剩余40%，立即充能',
+          effect: '对抗下午代谢低谷'
+        },
+        '17:00': {
+          message: '🌃黄昏航行补给，避免燃料枯竭',
+          effect: '缓解疲劳，准备晚餐'
+        },
+        '19:30': {
+          message: '🍃晚餐后生态维护，启动清洁协议',
+          effect: '稀释血液浓度'
+        },
+        '21:00': {
+          message: '🏥休眠前2小时，完成终极补给',
+          effect: '预防夜间脱水'
+        }
+      }
     }
   },
   computed: {
@@ -177,9 +159,16 @@ export default {
   onLoad() {
     // 生成粒子动画元素
     this.generateParticles()
-
-    // 初始化计算总水量摄入
-    this.calculateTotalWaterIntake()
+    
+    // 获取用户信息
+    this.getUserInfo()
+  },
+  
+  onShow() {
+    // 每次显示页面时刷新任务列表
+    if (this.userInfo) {
+      this.fetchWaterTaskList()
+    }
   },
   methods: {
     // 生成随机粒子动画元素
@@ -197,6 +186,101 @@ export default {
       this.particles = particles
     },
 
+    // 获取用户信息
+    getUserInfo() {
+      const app = getApp()
+      if (app.globalData.userInfo) {
+        this.userInfo = app.globalData.userInfo
+        this.fetchWaterTaskList()
+      } else {
+        // 如果没有登录，提示用户登录
+        uni.showModal({
+          title: '提示',
+          content: '请先登录以查看您的喝水任务',
+          confirmText: '去登录',
+          success: (res) => {
+            if (res.confirm) {
+              uni.switchTab({
+                url: '/pages/profile/profile'
+              })
+            } else {
+              uni.switchTab({
+                url: '/pages/index/index'
+              })
+            }
+          }
+        })
+      }
+    },
+    
+    // 获取用户喝水任务列表
+    fetchWaterTaskList() {
+      if (!this.userInfo || !this.userInfo.openid) return
+      
+      this.isLoading = true
+      api.getWaterTaskList(this.userInfo.openid)
+        .then(data => {
+          if (data.success) {
+            // 处理任务数据
+            this.processTaskData(data.tasks)
+          } else {
+            uni.showToast({
+              title: '获取任务列表失败',
+              icon: 'none'
+            })
+          }
+        })
+        .catch(err => {
+          console.error('获取任务列表失败:', err)
+          uni.showToast({
+            title: '获取任务列表失败',
+            icon: 'none'
+          })
+        })
+        .finally(() => {
+          this.isLoading = false
+        })
+    },
+    
+    // 处理任务数据
+    processTaskData(tasks) {
+      if (!tasks || tasks.length === 0) {
+        this.waterSchedule = []
+        return
+      }
+      
+      this.waterSchedule = tasks.map(task => {
+        // 从scheduledTime中提取时间部分 (格式: 2025-04-01 09:30:00)
+        const timeMatch = task.scheduledTime.match(/\d{2}:\d{2}/)
+        const timeString = timeMatch ? timeMatch[0] : '00:00'
+        
+        // 获取对应时间的消息和效果，如果没有则使用默认值
+        const messageInfo = this.messageMap[timeString] || {
+          message: '💧按时补充水分',
+          effect: '保持身体健康'
+        }
+        
+        return {
+          id: task._id,
+          time: timeString,
+          amount: `${task.waterAmount}ml`,
+          message: messageInfo.message,
+          effect: messageInfo.effect,
+          completed: task.status === 'completed'
+        }
+      })
+      
+      // 按时间排序
+      this.waterSchedule.sort((a, b) => {
+        const timeA = a.time.split(':').map(Number)
+        const timeB = b.time.split(':').map(Number)
+        return (timeA[0] * 60 + timeA[1]) - (timeB[0] * 60 + timeB[1])
+      })
+      
+      // 计算总水量摄入
+      this.calculateTotalWaterIntake()
+    },
+    
     // 判断是否为当前时间段
     isCurrentTimeSlot(timeString) {
       const now = new Date()
@@ -231,18 +315,51 @@ export default {
 
     // 切换完成状态
     toggleCompleted(index) {
-      // 切换完成状态
-      this.waterSchedule[index].completed = !this.waterSchedule[index].completed
-
-      // 重新计算总水量摄入
-      this.calculateTotalWaterIntake()
-
-      // 可以在这里添加提示或动画效果
-      uni.showToast({
-        title: this.waterSchedule[index].completed ? '已完成饮水任务！' : '已取消完成状态',
-        icon: 'none',
-        duration: 1500,
-      })
+      const task = this.waterSchedule[index]
+      console.log('task', task);
+      
+      if (task.completed) {
+        // 已完成的任务不能取消完成状态
+        uni.showToast({
+          title: '已完成的任务无法撤销',
+          icon: 'none'
+        })
+        return
+      }
+      
+      // 调用API完成任务
+      this.isLoading = true
+      api.completeWaterTask(task.id, this.userInfo.openid)
+        .then(data => {
+          if (data.success) {
+            // 更新本地状态
+            this.waterSchedule[index].completed = true
+            
+            // 重新计算总水量摄入
+            this.calculateTotalWaterIntake()
+            
+            uni.showToast({
+              title: '已完成饮水任务！',
+              icon: 'success',
+              duration: 1500
+            })
+          } else {
+            uni.showToast({
+              title: '完成任务失败: ' + (data.message || '未知错误'),
+              icon: 'none'
+            })
+          }
+        })
+        .catch(err => {
+          console.error('完成任务失败:', err)
+          uni.showToast({
+            title: '完成任务失败',
+            icon: 'none'
+          })
+        })
+        .finally(() => {
+          this.isLoading = false
+        })
     },
 
     // 计算总水量摄入
