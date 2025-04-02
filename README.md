@@ -10,6 +10,17 @@
 - **饮水量追踪**：可视化展示每日饮水进度和目标完成情况
 - **数据统计**：记录用户的饮水习惯，提供健康建议
 
+## 应用截图
+
+### 首页界面
+![首页界面](src/static/images/screenshot-1.png)
+
+### 饮水记录
+![饮水记录](src/static/images/screenshot-2.png)
+
+### 个人设置
+![个人设置](src/static/images/screenshot-3.png)
+
 ## 技术栈
 
 - 前端框架：Vue 3 + uni-app
