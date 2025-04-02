@@ -113,8 +113,8 @@ export default {
       userInfo: null,
       isLoading: false,
       lastRemindedTime: '',
-      targetWaterIntake: 2000,
-      currentWaterIntake: 1500,
+      targetWaterIntake: 1600,
+      currentWaterIntake: 0,
       isPulsing: false,
     }
   },
@@ -134,6 +134,17 @@ export default {
     },
   },
   methods: {
+    fetchTodayWaterIntake() {
+      if (!this.userInfo || !this.userInfo.openid) return
+      api.getTodayWater(this.userInfo.openid).then(res => {
+        console.log('res', res);
+        if (res.success) {
+          this.currentWaterIntake = res.totalWater || 0
+        } else {
+          this.currentWaterIntake = 0
+        }
+      })
+    },
     // 导航到进度页面
     navigateToProgress() {
       // 点击时触发脉冲动画
@@ -282,6 +293,8 @@ export default {
     // 获取用户信息
     fetchUserInfo() {
       if (!this.userInfo || !this.userInfo.openid) return
+
+      this.fetchTodayWaterIntake()
 
       api
         .getUserInfo(this.userInfo.openid)

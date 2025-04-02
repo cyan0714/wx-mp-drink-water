@@ -50,6 +50,16 @@ const api = {
   // 完成喝水任务
   completeWaterTask: (taskId, openid) => {
     return request(`/api/water-task/complete`, 'POST', { openid, taskId });
+  },
+  
+  // 取消完成喝水任务
+  cancelWaterTask: (taskId, openid) => {
+    return request(`/api/water-task/cancel`, 'POST', { openid, taskId });
+  },
+
+  // 获取用户今天喝水量
+  getTodayWater: (openid) => {
+    return request(`/api/water-task/today-water/${openid}`, 'GET');
   }
 };
 
